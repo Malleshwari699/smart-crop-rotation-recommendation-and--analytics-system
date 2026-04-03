@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ t('app_name') }} — Home</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>">
+</head>
+<body>
+
+<!-- ── Flash messages from server ─────────────────────────────────────────── -->
+{% for msg, cat in get_flashed_messages(with_categories=true) %}
+  <span class="server-flash" data-type="{{ cat }}" style="display:none">{{ msg }}</span>
+{% endfor %}
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     NAVBAR
+     ══════════════════════════════════════════════════════════════════════════ -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <span class="brand-icon">🌾</span>
+    <span>Smart<strong> Crop</strong></span>
+  </a>
+
+  <div class="hamburger" role="button" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </div>
+
+  <ul class="nav-links">
+    <li><a href="/" class="active">{{ t('nav_home') }}</a></li>
+    <li><a href="/predict">{{ t('nav_predict') }}</a></li>
+    <li><a href="/dashboard">{{ t('nav_dashboard') }}</a></li>
+    <li><a href="/performance">{{ t('nav_performance') }}</a></li>
+  </ul>
+
+  <div class="nav-controls">
+    <select class="lang-select" aria-label="{{ t('select_lang') }}">
+      {% for lang in languages %}
+        <option value="{{ lang }}" {% if lang == current_lang %}selected{% endif %}>{{ lang }}</option>
+      {% endfor %}
+    </select>
+    {% if session.get('user') %}
+      <a href="/logout" class="btn-login-nav">{{ t('nav_logout') }} ({{ session.user }})</a>
+    {% else %}
+      <a href="/login" class="btn-login-nav">{{ t('nav_login') }}</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     HERO
+     ══════════════════════════════════════════════════════════════════════════ -->
+<section class="hero" id="home">
+  <div class="hero-content fade-in">
+
+    <div class="hero-badge">🤖 AI · Machine Learning · Agriculture</div>
+
+    <h1>{{ t('home_hero_title') }}</h1>
+    <p>{{ t('home_hero_desc') }}</p>
+
+    <div class="hero-buttons">
+      <a href="/predict" class="btn btn-primary btn-lg">
+        🌱 {{ t('home_get_started') }}
+      </a>
+      <a href="/dashboard" class="btn btn-outline btn-lg">
+        📊 {{ t('home_view_analytics') }}
+      </a>
+    </div>
+
+    <!-- Stats Strip -->
+    <div class="hero-stats stagger">
+      <div class="stat-item">
+        <div class="stat-value" data-count="22" data-suffix="">22</div>
+        <div class="stat-label">{{ t('home_stats_crops') }}</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-value" data-count="2200" data-suffix="">2,200</div>
+        <div class="stat-label">{{ t('home_stats_samples') }}</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-value" data-count="94" data-suffix="%">94%</div>
+        <div class="stat-label">{{ t('home_stats_accuracy') }}</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-value" data-count="3" data-suffix="">3</div>
+        <div class="stat-label">{{ t('home_stats_langs') }}</div>
+      </div>
+    </div>
+
+  </div><!-- /.hero-content -->
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     FEATURES GRID
+     ══════════════════════════════════════════════════════════════════════════ -->
+<section class="features-section" id="features">
+  <p class="section-label">🌿 What We Offer</p>
+  <h2 class="section-title">{{ t('home_features_title') }}</h2>
+
+  <div class="features-grid stagger">
+
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h3>{{ t('home_feat1_title') }}</h3>
+      <p>{{ t('home_feat1_desc') }}</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">💊</div>
+      <h3>{{ t('home_feat2_title') }}</h3>
+      <p>{{ t('home_feat2_desc') }}</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🔄</div>
+      <h3>{{ t('home_feat3_title') }}</h3>
+      <p>{{ t('home_feat3_desc') }}</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <h3>{{ t('home_feat4_title') }}</h3>
+      <p>{{ t('home_feat4_desc') }}</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>{{ t('home_feat5_title') }}</h3>
+      <p>{{ t('home_feat5_desc') }}</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <h3>{{ t('home_feat6_title') }}</h3>
+      <p>{{ t('home_feat6_desc') }}</p>
+    </div>
+
+  </div><!-- /.features-grid -->
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     CTA STRIP
+     ══════════════════════════════════════════════════════════════════════════ -->
+<section class="cta-section">
+  <h2 style="color:#fff;font-family:'Poppins',sans-serif;font-size:1.9rem;margin-bottom:1rem;position:relative;z-index:1;" class="reveal">
+    Ready to make smarter farming decisions?
+  </h2>
+  <p style="color:rgba(255,255,255,0.87);margin-bottom:2rem;font-size:1.05rem;position:relative;z-index:1;max-width:560px;margin-left:auto;margin-right:auto;" class="reveal">
+    Enter your soil and climate data to get an instant AI-powered crop recommendation.
+  </p>
+  <div style="position:relative;z-index:1;" class="reveal">
+    <a href="/predict" class="btn btn-outline btn-lg">
+      🌱 Start Predicting Now
+    </a>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     ABOUT / TEAM SECTION
+     ══════════════════════════════════════════════════════════════════════════ -->
+<section id="about" style="background:#F1F8E9;padding:4.5rem 2rem;">
+  <p class="section-label">👥 Our Team</p>
+  <h2 class="section-title" style="margin-bottom:0.6rem;">About This Project</h2>
+  <p style="text-align:center;color:#666;max-width:620px;margin:0 auto 3rem;font-size:1rem;line-height:1.75;">
+    This Smart Crop Rotation Recommendation System was designed and developed as an
+    academic project to help farmers make AI-powered, data-driven decisions for
+    sustainable agriculture.
+  </p>
+
+  <!-- Team cards -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+              gap:1.4rem;max-width:900px;margin:0 auto 3rem;">
+
+    <!-- Member 1 -->
+    <div style="background:#fff;border-radius:16px;padding:1.8rem 1.2rem;text-align:center;
+                box-shadow:0 4px 16px rgba(0,0,0,0.08);border:2px solid #C8E6C9;
+                transition:transform 0.3s ease;" class="feature-card">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,#1B5E20,#43A047);
+                  border-radius:50%;display:flex;align-items:center;justify-content:center;
+                  font-size:1.6rem;margin:0 auto 1rem;">👩‍🌾</div>
+      <div style="font-family:'Poppins',sans-serif;font-size:1rem;font-weight:800;
+                  color:#1B5E20;letter-spacing:0.3px;">K. MALLESHWARI</div>
+      <div style="font-size:0.78rem;color:#888;margin-top:0.3rem;text-transform:uppercase;
+                  letter-spacing:0.6px;">Team Member</div>
+    </div>
+
+    <!-- Member 2 -->
+    <div style="background:#fff;border-radius:16px;padding:1.8rem 1.2rem;text-align:center;
+                box-shadow:0 4px 16px rgba(0,0,0,0.08);border:2px solid #C8E6C9;
+                transition:transform 0.3s ease;" class="feature-card">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,#1B5E20,#43A047);
+                  border-radius:50%;display:flex;align-items:center;justify-content:center;
+                  font-size:1.6rem;margin:0 auto 1rem;">👩‍💻</div>
+      <div style="font-family:'Poppins',sans-serif;font-size:1rem;font-weight:800;
+                  color:#1B5E20;letter-spacing:0.3px;">B. THANUJA</div>
+      <div style="font-size:0.78rem;color:#888;margin-top:0.3rem;text-transform:uppercase;
+                  letter-spacing:0.6px;">Team Member</div>
+    </div>
+
+    <!-- Member 3 -->
+    <div style="background:#fff;border-radius:16px;padding:1.8rem 1.2rem;text-align:center;
+                box-shadow:0 4px 16px rgba(0,0,0,0.08);border:2px solid #C8E6C9;
+                transition:transform 0.3s ease;" class="feature-card">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,#1B5E20,#43A047);
+                  border-radius:50%;display:flex;align-items:center;justify-content:center;
+                  font-size:1.6rem;margin:0 auto 1rem;">👨‍💻</div>
+      <div style="font-family:'Poppins',sans-serif;font-size:1rem;font-weight:800;
+                  color:#1B5E20;letter-spacing:0.3px;">M. NITHIN</div>
+      <div style="font-size:0.78rem;color:#888;margin-top:0.3rem;text-transform:uppercase;
+                  letter-spacing:0.6px;">Team Member</div>
+    </div>
+
+    <!-- Member 4 -->
+    <div style="background:#fff;border-radius:16px;padding:1.8rem 1.2rem;text-align:center;
+                box-shadow:0 4px 16px rgba(0,0,0,0.08);border:2px solid #C8E6C9;
+                transition:transform 0.3s ease;" class="feature-card">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,#1B5E20,#43A047);
+                  border-radius:50%;display:flex;align-items:center;justify-content:center;
+                  font-size:1.6rem;margin:0 auto 1rem;">👨‍🌾</div>
+      <div style="font-family:'Poppins',sans-serif;font-size:1rem;font-weight:800;
+                  color:#1B5E20;letter-spacing:0.3px;">CH. TARUN LUCKY</div>
+      <div style="font-size:0.78rem;color:#888;margin-top:0.3rem;text-transform:uppercase;
+                  letter-spacing:0.6px;">Team Member</div>
+    </div>
+
+  </div><!-- /team grid -->
+
+  <!-- Project badge -->
+  <div style="max-width:600px;margin:0 auto;background:linear-gradient(135deg,#1B5E20,#43A047);
+              border-radius:16px;padding:1.8rem 2rem;text-align:center;
+              box-shadow:0 6px 24px rgba(27,94,32,0.30);">
+    <div style="font-size:2rem;margin-bottom:0.5rem;">🌾</div>
+    <div style="font-family:'Poppins',sans-serif;font-size:1.1rem;font-weight:800;
+                color:#fff;margin-bottom:0.4rem;">
+      Smart Crop Rotation Recommendation &amp; Analytics System
+    </div>
+    <div style="color:rgba(255,255,255,0.8);font-size:0.88rem;">
+      Python · Flask · scikit-learn · Random Forest · Multi-Language
+    </div>
+    <div style="margin-top:0.8rem;color:#A5D6A7;font-size:0.82rem;font-weight:600;">
+      Built with ❤️ for Sustainable Agriculture
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     FOOTER
+     ══════════════════════════════════════════════════════════════════════════ -->
+<footer>
+  {{ t('footer_copy') }}
+  <div style="margin-top:0.5rem;font-size:0.78rem;opacity:0.7;">
+    Developed by &nbsp;
+    <strong style="color:#A5D6A7;">K. Malleshwari</strong> ·
+    <strong style="color:#A5D6A7;">B. Thanuja</strong> ·
+    <strong style="color:#A5D6A7;">M. Nithin</strong> ·
+    <strong style="color:#A5D6A7;">Ch. Tarun Lucky</strong>
+  </div>
+</footer>
+
+<!-- Loader overlay -->
+<div class="loader-overlay">
+  <div class="loader-spinner"></div>
+  <p class="loader-text">Analysing your data…</p>
+</div>
+
+<script src="/static/js/script.js"></script>
+</body>
+</html>

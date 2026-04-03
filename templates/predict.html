@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ t('app_name') }} — {{ t('pred_title') }}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>">
+</head>
+<body>
+
+{% for msg, cat in get_flashed_messages(with_categories=true) %}
+  <span class="server-flash" data-type="{{ cat }}" style="display:none">{{ msg }}</span>
+{% endfor %}
+
+<!-- ── NAVBAR ──────────────────────────────────────────────────────────────── -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <span class="brand-icon">🌾</span>
+    <span>Smart<strong> Crop</strong></span>
+  </a>
+  <div class="hamburger"><span></span><span></span><span></span></div>
+  <ul class="nav-links">
+    <li><a href="/">{{ t('nav_home') }}</a></li>
+    <li><a href="/predict" class="active">{{ t('nav_predict') }}</a></li>
+    <li><a href="/dashboard">{{ t('nav_dashboard') }}</a></li>
+    <li><a href="/performance">{{ t('nav_performance') }}</a></li>
+  </ul>
+  <div class="nav-controls">
+    <select class="lang-select">
+      {% for lang in languages %}
+        <option value="{{ lang }}" {% if lang == current_lang %}selected{% endif %}>{{ lang }}</option>
+      {% endfor %}
+    </select>
+    {% if session.get('user') %}
+      <a href="/logout" class="btn-login-nav">{{ t('nav_logout') }}</a>
+    {% else %}
+      <a href="/login" class="btn-login-nav">{{ t('nav_login') }}</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- ── PAGE HEADER ─────────────────────────────────────────────────────────── -->
+<div class="page-header reveal-scale">
+  <h1>🌱 {{ t('pred_title') }}</h1>
+  <p>{{ t('pred_subtitle') }}</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     PREDICTION FORM
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="form-section">
+  <form id="prediction-form" action="/predict" method="POST" novalidate>
+
+    <!-- ── Soil Nutrients ─────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:1.2rem;">
+      <div class="card-header">🧪 {{ t('pred_soil') }}</div>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label class="form-label" for="N"
+            data-tooltip="Nitrogen content in soil (kg/ha)">
+            🌿 {{ t('label_N') }}
+          </label>
+          <div class="range-wrapper">
+            <input type="range" id="N" name="N" class="range-input"
+              min="0" max="140" step="1" value="80"
+              data-min="0" data-max="140" required>
+            <span id="N-val" class="range-value">80</span>
+          </div>
+          <span class="form-hint">Range: 0 – 140 kg/ha</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="P"
+            data-tooltip="Phosphorus content in soil (kg/ha)">
+            🌿 {{ t('label_P') }}
+          </label>
+          <div class="range-wrapper">
+            <input type="range" id="P" name="P" class="range-input"
+              min="5" max="145" step="1" value="50"
+              data-min="5" data-max="145" required>
+            <span id="P-val" class="range-value">50</span>
+          </div>
+          <span class="form-hint">Range: 5 – 145 kg/ha</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="K"
+            data-tooltip="Potassium content in soil (kg/ha)">
+            🌿 {{ t('label_K') }}
+          </label>
+          <div class="range-wrapper">
+            <input type="range" id="K" name="K" class="range-input"
+              min="5" max="205" step="1" value="40"
+              data-min="5" data-max="205" required>
+            <span id="K-val" class="range-value">40</span>
+          </div>
+          <span class="form-hint">Range: 5 – 205 kg/ha</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ph"
+            data-tooltip="Soil pH level">
+            ⚗️ {{ t('label_ph') }}
+          </label>
+          <div class="range-wrapper">
+            <input type="range" id="ph" name="ph" class="range-input"
+              min="3.5" max="9.94" step="0.01" value="6.5"
+              data-min="3.5" data-max="9.94" required>
+            <span id="ph-val" class="range-value">6.50</span>
+          </div>
+          <span class="form-hint">Range: 3.5 – 9.94</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Climate Conditions ─────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:1.2rem;">
+      <div class="card-header">🌤️ {{ t('pred_climate') }}</div>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label class="form-label" for="temperature">🌡️ {{ t('label_temp') }}</label>
+          <div class="range-wrapper">
+            <input type="range" id="temperature" name="temperature" class="range-input"
+              min="8" max="44" step="0.1" value="25"
+              data-min="8" data-max="44" required>
+            <span id="temperature-val" class="range-value">25</span>
+          </div>
+          <span class="form-hint">Range: 8 – 44 °C</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="humidity">💧 {{ t('label_humidity') }}</label>
+          <div class="range-wrapper">
+            <input type="range" id="humidity" name="humidity" class="range-input"
+              min="14" max="100" step="0.1" value="70"
+              data-min="14" data-max="100" required>
+            <span id="humidity-val" class="range-value">70</span>
+          </div>
+          <span class="form-hint">Range: 14 – 100 %</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="rainfall">🌧️ {{ t('label_rainfall') }}</label>
+          <div class="range-wrapper">
+            <input type="range" id="rainfall" name="rainfall" class="range-input"
+              min="20" max="299" step="0.5" value="100"
+              data-min="20" data-max="299" required>
+            <span id="rainfall-val" class="range-value">100</span>
+          </div>
+          <span class="form-hint">Range: 20 – 299 mm</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Previous Crop ──────────────────────────────────────────────────── -->
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-header">🔄 {{ t('pred_rotation') }}</div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="form-group">
+          <label class="form-label" for="previous_crop">🌾 {{ t('label_prev') }}</label>
+          <select id="previous_crop" name="previous_crop" class="form-control" required>
+            {% for crop in prev_crops %}
+            <option value="{{ crop }}">{{ crop.title() }}</option>
+            {% endfor %}
+          </select>
+          <span class="form-hint">The crop grown in the last season</span>
+        </div>
+        <div style="display:flex;align-items:flex-end;padding-bottom:0.3rem;">
+          <div class="alert alert-info" style="margin-bottom:0;font-size:0.83rem;">
+            ℹ️ Previous crop affects soil nutrient balance and pest cycles — an important rotation factor.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Actions ────────────────────────────────────────────────────────── -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg">
+        🔍 {{ t('predict_btn') }}
+      </button>
+      <button type="button" id="reset-btn" class="btn btn-secondary btn-lg">
+        🔄 {{ t('reset_btn') }}
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<!-- ── QUICK REFERENCE ─────────────────────────────────────────────────────── -->
+<div class="form-section">
+  <div class="card">
+    <div class="card-header">📖 Quick Reference — Optimal Ranges</div>
+    <div style="overflow-x:auto;">
+      <table class="class-table">
+        <thead>
+          <tr><th>Parameter</th><th>Min</th><th>Max</th><th>Unit</th><th>Tip</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Nitrogen (N)</td><td>0</td><td>140</td><td>kg/ha</td><td>High for rice/wheat; low for legumes</td></tr>
+          <tr><td>Phosphorus (P)</td><td>5</td><td>145</td><td>kg/ha</td><td>Bananas and grapes need high P</td></tr>
+          <tr><td>Potassium (K)</td><td>5</td><td>205</td><td>kg/ha</td><td>Critical for fruiting crops</td></tr>
+          <tr><td>Temperature</td><td>8</td><td>44</td><td>°C</td><td>Most crops: 20–30°C optimal</td></tr>
+          <tr><td>Humidity</td><td>14</td><td>100</td><td>%</td><td>Rice needs 80%+; grapes prefer 60%</td></tr>
+          <tr><td>Soil pH</td><td>3.5</td><td>9.94</td><td>—</td><td>Most crops: 6.0–7.5</td></tr>
+          <tr><td>Rainfall</td><td>20</td><td>299</td><td>mm</td><td>Coffee: 200mm+; mungbean: 45mm</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer>
+  {{ t('footer_copy') }}
+  <div style="margin-top:0.5rem;font-size:0.78rem;opacity:0.7;">
+    Developed by &nbsp;
+    <strong style="color:#A5D6A7;">K. Malleshwari</strong> ·
+    <strong style="color:#A5D6A7;">B. Thanuja</strong> ·
+    <strong style="color:#A5D6A7;">M. Nithin</strong> ·
+    <strong style="color:#A5D6A7;">Ch. Tarun Lucky</strong>
+  </div>
+</footer>
+
+<div class="loader-overlay">
+  <div class="loader-spinner"></div>
+  <p class="loader-text">🤖 Analysing your data…</p>
+</div>
+
+<script src="/static/js/script.js"></script>
+</body>
+</html>

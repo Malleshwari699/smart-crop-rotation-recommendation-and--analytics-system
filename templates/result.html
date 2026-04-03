@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ t('app_name') }} — {{ t('result_title') }}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>">
+</head>
+<body>
+
+{% for msg, cat in get_flashed_messages(with_categories=true) %}
+  <span class="server-flash" data-type="{{ cat }}" style="display:none">{{ msg }}</span>
+{% endfor %}
+
+<!-- ── NAVBAR ──────────────────────────────────────────────────────────────── -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <span class="brand-icon">🌾</span>
+    <span>Smart<strong> Crop</strong></span>
+  </a>
+  <div class="hamburger"><span></span><span></span><span></span></div>
+  <ul class="nav-links">
+    <li><a href="/">{{ t('nav_home') }}</a></li>
+    <li><a href="/predict" class="active">{{ t('nav_predict') }}</a></li>
+    <li><a href="/dashboard">{{ t('nav_dashboard') }}</a></li>
+    <li><a href="/performance">{{ t('nav_performance') }}</a></li>
+  </ul>
+  <div class="nav-controls">
+    <select class="lang-select">
+      {% for lang in languages %}
+        <option value="{{ lang }}" {% if lang == current_lang %}selected{% endif %}>{{ lang }}</option>
+      {% endfor %}
+    </select>
+    {% if session.get('user') %}
+      <a href="/logout" class="btn-login-nav">{{ t('nav_logout') }}</a>
+    {% else %}
+      <a href="/login" class="btn-login-nav">{{ t('nav_login') }}</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- ── PAGE HEADER ─────────────────────────────────────────────────────────── -->
+<div class="page-header reveal-scale">
+  <h1>🏆 {{ t('result_title') }}</h1>
+  <p>Based on your soil, climate, and rotation data</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     RESULT HERO
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="result-wrapper">
+
+  <div class="result-hero slide-up">
+    <div class="result-label">{{ t('result_title') }}</div>
+    <div class="result-crop-name">
+      {{ result.crop_emoji }} {{ result.crop_title }}
+    </div>
+    <div class="confidence-badge" style="margin-top:0.8rem;">
+      🎯 {{ t('result_confidence') }}: <strong>{{ result.confidence }}%</strong>
+    </div>
+    <p style="color:rgba(255,255,255,0.75);font-size:0.88rem;margin-top:0.8rem;">
+      Powered by Random Forest · 2,200 training samples
+    </p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       DETAILS GRID
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="result-grid stagger">
+
+    <!-- Fertilizer -->
+    <div class="result-card fertilizer-box reveal-left">
+      <h4>💊 {{ t('result_fertilizer') }}</h4>
+      <p style="font-weight:700;font-size:1.05rem;color:#1565C0;margin-bottom:0.4rem;">
+        {{ result.fertilizer_name }}
+      </p>
+      <p>{{ result.fertilizer_detail }}</p>
+    </div>
+
+    <!-- Rotation Note -->
+    <div class="result-card {% if '✅' in result.rotation_note %}rotation-good{% else %}rotation-warn{% endif %} fade-in">
+      <h4>🔄 {{ t('result_rotation') }}</h4>
+      <p>{{ result.rotation_note }}</p>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       TOP-5 PROBABILITIES
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="card fade-in" style="margin-bottom:1.5rem;">
+    <div class="card-header">📊 {{ t('result_top5') }}</div>
+    <div class="top5-bar-wrap">
+      {% for item in result.top5 %}
+      <div class="top5-crop-row">
+        <span class="top5-label">
+          {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}🌱{% endif %}
+          {{ item.crop }}
+        </span>
+        <div class="top5-bar-outer">
+          <div class="top5-bar-inner" style="width:{{ item.prob }}%;"
+               data-width="{{ item.prob }}%"></div>
+        </div>
+        <span class="top5-pct">{{ item.prob }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       INPUT SUMMARY (what the user entered)
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="card fade-in" style="margin-bottom:1.5rem;">
+    <div class="card-header">📝 Your Input Summary</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.8rem;">
+      {% set fields = [
+        ('🌿', 'Nitrogen (N)',    input.N,           'kg/ha'),
+        ('🌿', 'Phosphorus (P)', input.P,           'kg/ha'),
+        ('🌿', 'Potassium (K)',  input.K,           'kg/ha'),
+        ('🌡️', 'Temperature',   input.temperature, '°C'),
+        ('💧', 'Humidity',       input.humidity,    '%'),
+        ('⚗️', 'Soil pH',        input.ph,          ''),
+        ('🌧️', 'Rainfall',       input.rainfall,    'mm'),
+        ('🔄', 'Prev. Crop',     input.previous_crop, ''),
+      ] %}
+      {% for icon, label, val, unit in fields %}
+      <div style="background:#F1F8E9;border-radius:10px;padding:0.8rem;border:1px solid #C8E6C9;text-align:center;">
+        <div style="font-size:1.2rem;">{{ icon }}</div>
+        <div style="font-size:1rem;font-weight:800;color:#1B5E20;">
+          {{ val }}{% if unit %} <span style="font-size:0.72rem;font-weight:500;color:#558B2F;">{{ unit }}</span>{% endif %}
+        </div>
+        <div style="font-size:0.73rem;color:#9E9E9E;text-transform:uppercase;letter-spacing:0.4px;">{{ label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       ACTIONS
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-top:1rem;">
+    <a href="/predict" class="btn btn-primary btn-lg">
+      🔄 Predict Again
+    </a>
+    <a href="/dashboard" class="btn btn-secondary btn-lg">
+      📊 View Analytics
+    </a>
+    <button onclick="window.print()" class="btn btn-secondary btn-lg">
+      🖨️ Print Report
+    </button>
+  </div>
+
+</div><!-- /.result-wrapper -->
+
+<footer>
+  {{ t('footer_copy') }}
+  <div style="margin-top:0.5rem;font-size:0.78rem;opacity:0.7;">
+    Developed by &nbsp;
+    <strong style="color:#A5D6A7;">K. Malleshwari</strong> ·
+    <strong style="color:#A5D6A7;">B. Thanuja</strong> ·
+    <strong style="color:#A5D6A7;">M. Nithin</strong> ·
+    <strong style="color:#A5D6A7;">Ch. Tarun Lucky</strong>
+  </div>
+</footer>
+
+<script src="/static/js/script.js"></script>
+</body>
+</html>

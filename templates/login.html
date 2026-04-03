@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ t('app_name') }} — {{ t('nav_login') }}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>">
+</head>
+<body>
+
+{% for msg, cat in get_flashed_messages(with_categories=true) %}
+  <span class="server-flash" data-type="{{ cat }}" style="display:none">{{ msg }}</span>
+{% endfor %}
+
+<!-- ── NAVBAR ──────────────────────────────────────────────────────────────── -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <span class="brand-icon">🌾</span>
+    <span>Smart<strong> Crop</strong></span>
+  </a>
+  <div class="hamburger"><span></span><span></span><span></span></div>
+  <ul class="nav-links">
+    <li><a href="/">{{ t('nav_home') }}</a></li>
+    <li><a href="/predict">{{ t('nav_predict') }}</a></li>
+    <li><a href="/dashboard">{{ t('nav_dashboard') }}</a></li>
+    <li><a href="/performance">{{ t('nav_performance') }}</a></li>
+  </ul>
+  <div class="nav-controls">
+    <select class="lang-select">
+      {% for lang in languages %}
+        <option value="{{ lang }}" {% if lang == current_lang %}selected{% endif %}>{{ lang }}</option>
+      {% endfor %}
+    </select>
+    <a href="/login" class="btn-login-nav active">{{ t('nav_login') }}</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     LOGIN CARD
+     ══════════════════════════════════════════════════════════════════════════ -->
+<main class="login-wrapper">
+  <div class="login-card fade-in">
+
+    <div class="login-icon">🌾</div>
+    <h2>{{ t('login_title') }}</h2>
+    <p>{{ t('login_subtitle') }}</p>
+
+    <!-- Error alert from server -->
+    {% if error %}
+    <div class="alert alert-danger">⚠️ {{ t('login_error') }}</div>
+    {% endif %}
+
+    <form id="login-form" action="/login" method="POST" novalidate>
+      <!-- CSRF token placeholder (add flask-wtf for real apps) -->
+      <div class="form-group" style="margin-bottom:1.1rem;">
+        <label class="form-label" for="username">👤 {{ t('login_username') }}</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          class="form-control"
+          placeholder="e.g. admin"
+          autocomplete="username"
+          required
+          value="{{ request.form.get('username', '') }}"
+        >
+      </div>
+
+      <div class="form-group" style="margin-bottom:1.4rem;">
+        <label class="form-label" for="password">🔒 {{ t('login_password') }}</label>
+        <div style="position:relative;">
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-control"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required
+            style="padding-right:2.5rem;"
+          >
+          <button type="button" id="toggle-pwd"
+            style="position:absolute;right:0.7rem;top:50%;transform:translateY(-50%);
+                   background:none;border:none;cursor:pointer;font-size:1rem;">
+            👁
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full btn-lg">
+        🔑 {{ t('login_btn') }}
+      </button>
+    </form>
+
+    <div class="demo-hint">
+      <strong>🧪 {{ t('login_demo') }}</strong>
+    </div>
+
+    <p style="text-align:center;margin-top:1.2rem;font-size:0.88rem;color:#9E9E9E;">
+      {{ t('login_no_account') }}
+      <a href="/login" style="color:#2E7D32;font-weight:600;">{{ t('login_register') }}</a>
+    </p>
+
+  </div><!-- /.login-card -->
+</main>
+
+<footer>
+  {{ t('footer_copy') }}
+  <div style="margin-top:0.5rem;font-size:0.78rem;opacity:0.7;">
+    Developed by &nbsp;
+    <strong style="color:#A5D6A7;">K. Malleshwari</strong> ·
+    <strong style="color:#A5D6A7;">B. Thanuja</strong> ·
+    <strong style="color:#A5D6A7;">M. Nithin</strong> ·
+    <strong style="color:#A5D6A7;">Ch. Tarun Lucky</strong>
+  </div>
+</footer>
+
+<script src="/static/js/script.js"></script>
+</body>
+</html>

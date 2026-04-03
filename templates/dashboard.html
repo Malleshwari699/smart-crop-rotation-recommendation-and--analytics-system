@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ t('app_name') }} — {{ t('dash_title') }}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>">
+</head>
+<body>
+
+{% for msg, cat in get_flashed_messages(with_categories=true) %}
+  <span class="server-flash" data-type="{{ cat }}" style="display:none">{{ msg }}</span>
+{% endfor %}
+
+<!-- ── NAVBAR ──────────────────────────────────────────────────────────────── -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <span class="brand-icon">🌾</span>
+    <span>Smart<strong> Crop</strong></span>
+  </a>
+  <div class="hamburger"><span></span><span></span><span></span></div>
+  <ul class="nav-links">
+    <li><a href="/">{{ t('nav_home') }}</a></li>
+    <li><a href="/predict">{{ t('nav_predict') }}</a></li>
+    <li><a href="/dashboard" class="active">{{ t('nav_dashboard') }}</a></li>
+    <li><a href="/performance">{{ t('nav_performance') }}</a></li>
+  </ul>
+  <div class="nav-controls">
+    <select class="lang-select">
+      {% for lang in languages %}
+        <option value="{{ lang }}" {% if lang == current_lang %}selected{% endif %}>{{ lang }}</option>
+      {% endfor %}
+    </select>
+    {% if session.get('user') %}
+      <a href="/logout" class="btn-login-nav">{{ t('nav_logout') }}</a>
+    {% else %}
+      <a href="/login" class="btn-login-nav">{{ t('nav_login') }}</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- ── PAGE HEADER ─────────────────────────────────────────────────────────── -->
+<div class="page-header reveal-scale">
+  <h1>📊 {{ t('dash_title') }}</h1>
+  <p>{{ t('dash_subtitle') }}</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SUMMARY METRIC CARDS
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="metric-grid stagger">
+  <div class="metric-card">
+    <div class="metric-icon">🌾</div>
+    <div class="metric-value" data-count="22" data-suffix="">22</div>
+    <div class="metric-label">{{ t('home_stats_crops') }}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon">📋</div>
+    <div class="metric-value" data-count="2200" data-suffix="">2,200</div>
+    <div class="metric-label">{{ t('home_stats_samples') }}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon">✅</div>
+    <div class="metric-value" data-count="{{ metrics.accuracy }}" data-suffix="%">{{ metrics.accuracy }}%</div>
+    <div class="metric-label">{{ t('metric_accuracy') }}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon">🔄</div>
+    <div class="metric-value" data-count="5" data-suffix="">5</div>
+    <div class="metric-label">Prev. Crop Types</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     TAB SWITCHER
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="dashboard-wrapper">
+
+  <div class="tab-switcher">
+    <button class="tab-btn" data-tab="distribution">🥧 {{ t('chart_dist') }}</button>
+    <button class="tab-btn" data-tab="nutrients">🧪 {{ t('chart_nutrients') }}</button>
+    <button class="tab-btn" data-tab="rainfall">🌧️ {{ t('chart_rainfall') }}</button>
+    <button class="tab-btn" data-tab="ph">⚗️ {{ t('chart_ph') }}</button>
+    <button class="tab-btn" data-tab="correlation">🔗 {{ t('chart_corr') }}</button>
+    <button class="tab-btn" data-tab="prevcrop">🔄 {{ t('chart_prev') }}</button>
+  </div>
+
+  <!-- ── Crop Distribution ─────────────────────────────────────────────────── -->
+  <div class="tab-panel fade-in" data-tab="distribution">
+    <div class="chart-grid">
+      <div class="chart-card chart-card-full">
+        <h3 class="chart-title">🥧 {{ t('chart_dist') }}</h3>
+        <img class="chart-img" src="/static/images/crop_distribution.png" alt="Crop Distribution">
+      </div>
+    </div>
+
+    <!-- Mini stats table -->
+    <div class="card mt-2">
+      <div class="card-header">📋 Crop Sample Counts</div>
+      <div style="overflow-x:auto;">
+        <table class="class-table">
+          <thead>
+            <tr>
+              <th>Crop</th>
+              <th>Samples</th>
+              <th>Share</th>
+              <th>Visual</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for crop, count in summary.crop_counts.items() | sort %}
+            <tr>
+              <td><strong>{{ crop.title() }}</strong></td>
+              <td>{{ count }}</td>
+              <td>{{ "%.1f"|format(count / summary.total_samples * 100) }}%</td>
+              <td>
+                <div style="background:#E8F5E9;border-radius:50px;height:10px;width:180px;">
+                  <div style="background:#2E7D32;height:100%;border-radius:50px;width:{{ (count / summary.total_samples * 100)|int }}%;"></div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Soil Nutrients ─────────────────────────────────────────────────────── -->
+  <div class="tab-panel fade-in" data-tab="nutrients">
+    <div class="chart-card">
+      <h3 class="chart-title">🧪 {{ t('chart_nutrients') }}</h3>
+      <img class="chart-img" src="/static/images/nutrient_bar.png" alt="Nutrient Bar Chart">
+    </div>
+    <div class="card mt-2">
+      <div class="card-header">📊 Dataset Feature Statistics</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-top:0.5rem;">
+        {% for feature, mean in summary.feature_means.items() %}
+        <div style="background:#F1F8E9;border-radius:10px;padding:0.9rem;border:1px solid #C8E6C9;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:800;color:#1B5E20;">{{ mean }}</div>
+          <div style="font-size:0.78rem;color:#558B2F;font-weight:600;text-transform:uppercase;">{{ feature }}</div>
+          <div style="font-size:0.72rem;color:#9E9E9E;">Mean value</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Rainfall ───────────────────────────────────────────────────────────── -->
+  <div class="tab-panel fade-in" data-tab="rainfall">
+    <div class="chart-card">
+      <h3 class="chart-title">🌧️ {{ t('chart_rainfall') }}</h3>
+      <img class="chart-img" src="/static/images/rainfall_scatter.png" alt="Rainfall Scatter">
+    </div>
+    <div class="card mt-2">
+      <div class="card-header">🌧️ Mean Rainfall by Crop (mm)</div>
+      {% for crop, val in summary.rainfall_stats.items() | sort(attribute='1', reverse=True) %}
+      <div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:0.5rem;">
+        <span style="min-width:110px;font-size:0.88rem;font-weight:600;color:#1B5E20;">{{ crop.title() }}</span>
+        <div style="flex:1;height:16px;background:#E8F5E9;border-radius:50px;overflow:hidden;">
+          <div style="background:linear-gradient(90deg,#2E7D32,#66BB6A);height:100%;
+                      border-radius:50px;width:{{ [(val / 300 * 100)|int, 100]|min }}%;"></div>
+        </div>
+        <span style="font-size:0.85rem;font-weight:700;color:#2E7D32;min-width:55px;text-align:right;">{{ val }} mm</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── Soil pH ────────────────────────────────────────────────────────────── -->
+  <div class="tab-panel fade-in" data-tab="ph">
+    <div class="chart-card">
+      <h3 class="chart-title">⚗️ {{ t('chart_ph') }}</h3>
+      <img class="chart-img" src="/static/images/ph_boxplot.png" alt="pH Box Plot">
+    </div>
+    <div class="card mt-2">
+      <div class="card-header">⚗️ Mean Soil pH by Crop</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:0.7rem;margin-top:0.5rem;">
+        {% for crop, val in summary.ph_stats.items() | sort %}
+        <div style="background:#F1F8E9;border-radius:8px;padding:0.6rem 0.8rem;
+                    border:1px solid #C8E6C9;text-align:center;">
+          <div style="font-size:1.05rem;font-weight:800;color:#1B5E20;">{{ val }}</div>
+          <div style="font-size:0.75rem;color:#558B2F;">{{ crop.title() }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Correlation ────────────────────────────────────────────────────────── -->
+  <div class="tab-panel fade-in" data-tab="correlation">
+    <div class="chart-card chart-card-full">
+      <h3 class="chart-title">🔗 {{ t('chart_corr') }}</h3>
+      <img class="chart-img" src="/static/images/correlation_heatmap.png" alt="Feature Correlation">
+    </div>
+    <div class="alert alert-info mt-2">
+      ℹ️ Correlation values range from -1 (strong negative) to +1 (strong positive). Values near 0 indicate little linear relationship.
+    </div>
+  </div>
+
+  <!-- ── Previous Crop ──────────────────────────────────────────────────────── -->
+  <div class="tab-panel fade-in" data-tab="prevcrop">
+    <div class="chart-grid">
+      <div class="chart-card chart-card-full">
+        <h3 class="chart-title">🔄 {{ t('chart_prev') }}</h3>
+        <img class="chart-img" src="/static/images/prev_crop_bar.png" alt="Previous Crop Frequency">
+      </div>
+    </div>
+    <div class="card mt-2">
+      <div class="card-header">🔄 Previous Crop Distribution</div>
+      {% for crop, cnt in summary.prev_crop_counts.items() | sort(attribute='1', reverse=True) %}
+      <div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:0.55rem;">
+        <span style="min-width:100px;font-size:0.9rem;font-weight:600;color:#1B5E20;">{{ crop.title() }}</span>
+        <div style="flex:1;height:18px;background:#E8F5E9;border-radius:50px;overflow:hidden;">
+          <div style="background:linear-gradient(90deg,#1B5E20,#43A047);height:100%;
+                      border-radius:50px;width:{{ [(cnt / summary.total_samples * 100)|int, 100]|min }}%;"></div>
+        </div>
+        <span style="font-weight:700;color:#2E7D32;min-width:60px;text-align:right;">{{ cnt }} rows</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div><!-- /.dashboard-wrapper -->
+
+<footer>
+  {{ t('footer_copy') }}
+  <div style="margin-top:0.5rem;font-size:0.78rem;opacity:0.7;">
+    Developed by &nbsp;
+    <strong style="color:#A5D6A7;">K. Malleshwari</strong> ·
+    <strong style="color:#A5D6A7;">B. Thanuja</strong> ·
+    <strong style="color:#A5D6A7;">M. Nithin</strong> ·
+    <strong style="color:#A5D6A7;">Ch. Tarun Lucky</strong>
+  </div>
+</footer>
+
+<div class="loader-overlay">
+  <div class="loader-spinner"></div>
+  <p class="loader-text">Loading analytics…</p>
+</div>
+
+<script src="/static/js/script.js"></script>
+</body>
+</html>

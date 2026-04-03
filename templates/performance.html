@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ t('app_name') }} — {{ t('perf_title') }}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>">
+</head>
+<body>
+
+{% for msg, cat in get_flashed_messages(with_categories=true) %}
+  <span class="server-flash" data-type="{{ cat }}" style="display:none">{{ msg }}</span>
+{% endfor %}
+
+<!-- ── NAVBAR ──────────────────────────────────────────────────────────────── -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <span class="brand-icon">🌾</span>
+    <span>Smart<strong> Crop</strong></span>
+  </a>
+  <div class="hamburger"><span></span><span></span><span></span></div>
+  <ul class="nav-links">
+    <li><a href="/">{{ t('nav_home') }}</a></li>
+    <li><a href="/predict">{{ t('nav_predict') }}</a></li>
+    <li><a href="/dashboard">{{ t('nav_dashboard') }}</a></li>
+    <li><a href="/performance" class="active">{{ t('nav_performance') }}</a></li>
+  </ul>
+  <div class="nav-controls">
+    <select class="lang-select">
+      {% for lang in languages %}
+        <option value="{{ lang }}" {% if lang == current_lang %}selected{% endif %}>{{ lang }}</option>
+      {% endfor %}
+    </select>
+    {% if session.get('user') %}
+      <a href="/logout" class="btn-login-nav">{{ t('nav_logout') }}</a>
+    {% else %}
+      <a href="/login" class="btn-login-nav">{{ t('nav_login') }}</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- ── PAGE HEADER ─────────────────────────────────────────────────────────── -->
+<div class="page-header reveal-scale">
+  <h1>📈 {{ t('perf_title') }}</h1>
+  <p>{{ t('perf_subtitle') }}</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     METRIC CARDS (top)
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="metric-grid stagger">
+  <div class="metric-card">
+    <div class="metric-icon">✅</div>
+    <div class="metric-value" data-count="{{ metrics.accuracy }}" data-suffix="%">
+      {{ metrics.accuracy }}%
+    </div>
+    <div class="metric-label">{{ t('metric_accuracy') }}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon">🎯</div>
+    <div class="metric-value" data-count="{{ metrics.precision }}" data-suffix="%">
+      {{ metrics.precision }}%
+    </div>
+    <div class="metric-label">{{ t('metric_precision') }}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon">🔁</div>
+    <div class="metric-value" data-count="{{ metrics.recall }}" data-suffix="%">
+      {{ metrics.recall }}%
+    </div>
+    <div class="metric-label">{{ t('metric_recall') }}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon">⚖️</div>
+    <div class="metric-value" data-count="{{ metrics.f1 }}" data-suffix="%">
+      {{ metrics.f1 }}%
+    </div>
+    <div class="metric-label">{{ t('metric_f1') }}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon">🔬</div>
+    <div class="metric-value" data-count="{{ metrics.cv_mean }}" data-suffix="%">
+      {{ metrics.cv_mean }}%
+    </div>
+    <div class="metric-label">5-Fold CV Accuracy</div>
+  </div>
+</div>
+
+<div class="performance-wrapper">
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       METRIC BARS
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="card fade-in" style="margin-bottom:1.4rem;">
+    <div class="card-header">📊 Metric Overview</div>
+
+    {% set metric_items = [
+      (t('metric_accuracy'),  metrics.accuracy,  '✅'),
+      (t('metric_precision'), metrics.precision, '🎯'),
+      (t('metric_recall'),    metrics.recall,    '🔁'),
+      (t('metric_f1'),        metrics.f1,        '⚖️'),
+      ('5-Fold CV',           metrics.cv_mean,   '🔬'),
+    ] %}
+
+    {% for label, val, icon in metric_items %}
+    <div class="perf-bar-row">
+      <div class="perf-bar-label">{{ icon }} {{ label }}</div>
+      <div class="perf-bar-outer">
+        <div class="perf-bar-inner" data-width="{{ val }}%" style="width:0;"></div>
+      </div>
+      <div class="perf-bar-pct">{{ val }}%</div>
+    </div>
+    {% endfor %}
+
+    <p style="font-size:0.8rem;color:#9E9E9E;margin-top:0.8rem;">
+      ℹ️ Trained on {{ metrics.train_samples }} samples · Tested on {{ metrics.test_samples }} samples · {{ metrics.num_crops }} crop classes
+    </p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       CHARTS TAB SWITCHER
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="tab-switcher">
+    <button class="tab-btn" data-tab="confusion">🔲 {{ t('chart_confusion') }}</button>
+    <button class="tab-btn" data-tab="importance">📊 {{ t('chart_importance') }}</button>
+    <button class="tab-btn" data-tab="classmetrics">📋 {{ t('perf_class_metrics') }}</button>
+  </div>
+
+  <!-- Confusion Matrix -->
+  <div class="tab-panel fade-in" data-tab="confusion">
+    <div class="chart-card">
+      <h3 class="chart-title">🔲 {{ t('chart_confusion') }}</h3>
+      <img class="chart-img" src="/static/images/confusion_matrix.png" alt="Confusion Matrix">
+      <p style="font-size:0.83rem;color:#9E9E9E;margin-top:0.6rem;text-align:center;">
+        Diagonal = correct predictions. Off-diagonal = misclassifications. Click to enlarge.
+      </p>
+    </div>
+  </div>
+
+  <!-- Feature Importance -->
+  <div class="tab-panel fade-in" data-tab="importance">
+    <div class="chart-card">
+      <h3 class="chart-title">📊 {{ t('chart_importance') }}</h3>
+      <img class="chart-img" src="/static/images/feature_importance.png" alt="Feature Importance">
+    </div>
+    <div class="alert alert-info mt-2">
+      ℹ️ Feature importance shows how much each variable contributes to the Random Forest's predictions.
+      Higher = more influential.
+    </div>
+  </div>
+
+  <!-- Per-Class Metrics -->
+  <div class="tab-panel fade-in" data-tab="classmetrics">
+    <div class="card">
+      <div class="card-header">📋 {{ t('perf_class_metrics') }}</div>
+      <div style="overflow-x:auto;">
+        <table class="class-table">
+          <thead>
+            <tr>
+              <th>Crop</th>
+              <th>Precision</th>
+              <th>Recall</th>
+              <th>F1-Score</th>
+              <th>Support</th>
+              <th>Visual</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in class_metrics %}
+            <tr>
+              <td><strong>{{ row.crop }}</strong></td>
+              <td>{{ row.precision }}</td>
+              <td>{{ row.recall }}</td>
+              <td>{{ row.f1 }}</td>
+              <td>{{ row.support }}</td>
+              <td>
+                <div style="background:#E8F5E9;border-radius:50px;height:8px;width:100px;">
+                  <div style="background:#2E7D32;height:100%;border-radius:50px;
+                              width:{{ row.f1_pct }}%;"></div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MODEL INFO
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="card fade-in" style="margin-top:1.4rem;">
+    <div class="card-header">🤖 Model Configuration</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.8rem;">
+      {% set config = [
+        ('Algorithm',     'Random Forest'),
+        ('Trees',         '300 estimators'),
+        ('Max Features',  'sqrt(n_features)'),
+        ('Random State',  '42'),
+        ('Train Split',   '80%  (1,760 rows)'),
+        ('Test Split',    '20%  (440 rows)'),
+        ('CV Folds',      '5-Fold stratified'),
+        ('Features',      '8 input features'),
+      ] %}
+      {% for label, val in config %}
+      <div style="background:#F1F8E9;border-radius:8px;padding:0.75rem;border:1px solid #C8E6C9;">
+        <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#558B2F;">{{ label }}</div>
+        <div style="font-size:0.95rem;font-weight:700;color:#1B5E20;margin-top:0.2rem;">{{ val }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div><!-- /.performance-wrapper -->
+
+<footer>
+  {{ t('footer_copy') }}
+  <div style="margin-top:0.5rem;font-size:0.78rem;opacity:0.7;">
+    Developed by &nbsp;
+    <strong style="color:#A5D6A7;">K. Malleshwari</strong> ·
+    <strong style="color:#A5D6A7;">B. Thanuja</strong> ·
+    <strong style="color:#A5D6A7;">M. Nithin</strong> ·
+    <strong style="color:#A5D6A7;">Ch. Tarun Lucky</strong>
+  </div>
+</footer>
+
+<div class="loader-overlay">
+  <div class="loader-spinner"></div>
+  <p class="loader-text">Loading metrics…</p>
+</div>
+
+<script src="/static/js/script.js"></script>
+</body>
+</html>
